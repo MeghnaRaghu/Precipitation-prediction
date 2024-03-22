@@ -1,0 +1,41 @@
+ % Specify the folder containing the .h5 files
+folder_path = 'path_to_folder';  % Update with your folder path
+
+% Initialize variables to store predictions for each day
+num_days = 30;
+predictions = zeros(num_days, 1);
+
+% Loop over each day's file
+for day = 1:num_days
+    % Load the current day's data
+    filename = fullfile(folder_path, ['day', num2str(day), '.h5']);
+    data = h5read(filename, '/precipitation');
+    
+    % Preprocess the data if needed
+    % For example, handle missing values or normalize the data
+    
+    % Split the data into features and target (assuming last column is target)
+    X = data(:, 1:end-1); % Features
+    y = data(:, end); % Target
+    
+    % Train a decision tree model
+    tree = fitrtree(X, y);
+    
+    % Predict next day's precipitation
+    if day < num_days
+        % Load the next day's data
+        next_day_filename = fullfile(folder_path, ['day', num2str(day+1), '.h5']);
+        next_day_data = h5read(next_day_filename, '/precipitation');
+        X_next_day = next_day_data(1, 1:end-1); % Features for the next day
+        next_day_precipitation = predict(tree, X_next_day);
+        
+        % Store the prediction for the current day
+        predictions(day) = next_day_precipitation;
+    else
+        disp('No more data available for prediction.');
+    end
+end
+
+% Display predictions
+disp('Predictions for each day:');
+disp(predictions);
